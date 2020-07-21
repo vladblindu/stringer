@@ -7,13 +7,13 @@
  */
 
 module.exports = {
-    DEFAULT_CONFIG: 'config/index.js',
-    DEFAULT_ROOT: 'src',
-    DEFAULT_PATTERN: 'strings.json',
-    DEFAULT_DEST: 'public/locales',
-    DEFAULT_LANGS: ['en', 'ro'],
-    GLOB_OPTS: {
-        absolute: true,
-        matchBase: true
-    }
+  DEFAULT_CONFIG: 'config/index.js',
+  DEFAULT_ROOT: 'src',
+  DEFAULT_PATTERN: 'strings.json',
+  DEFAULT_DEST: 'public/locales',
+  DEFAULT_LANGS: ['en', 'ro'],
+  GLOB_OPTS: {
+    absolute: true,
+    matchBase: true
+  }
 }

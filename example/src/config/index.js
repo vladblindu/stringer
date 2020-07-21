@@ -11,17 +11,15 @@ module.exports.localesPath = './public/locales'
 
 //routes
 module.exports.routes = {
-    login: {
-        url: 'login',
-        visitable: true,
-        specialRoute: 'login'
-    },
-    createUser:{
-        url: 'create-user'
-    }
+  login: {
+    url: 'login',
+    visitable: true,
+    specialRoute: 'login'
+  },
+  createUser: {
+    url: 'create-user'
+  }
 }
 
 //theming options
-module.exports.theme = {
-
-}
+module.exports.theme = {}

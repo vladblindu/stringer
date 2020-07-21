@@ -1,9 +1,9 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import {StringsProvider} from 'stringer'
+import { StringsProvider } from 'stringer'
 import enStrings from './locales/en.json'
 import roStrings from './locales/ro.json'
-import {langs, defaultLang} from './config'
+import { langs, defaultLang } from './config'
 import App from './App'
 
 const strings = {

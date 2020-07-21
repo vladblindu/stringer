@@ -5,9 +5,9 @@
       "app-name": "frontbase",
       "description": "React frontend boilerplate starter"
     },
-    "ro":{
+    "ro": {
       "app-name": "frontbase",
-      "description":"Baza de cod a unei aplicatii React"
+      "description": "Baza de cod a unei aplicatii React"
     }
   }
 }

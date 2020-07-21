@@ -11,12 +11,12 @@ const App = () => {
     <div>Current lang: {lang}</div>
     {langs.map(
       l =>
-      <button
-        onClick={
-          () => {
-            if(l !== lang) setLang(l)
-          }
-        }>{l}</button>
+        <button
+          onClick={
+            () => {
+              if (l !== lang) setLang(l)
+            }
+          }>{l}</button>
     )}
   </div>
 }
