@@ -1,0 +1,13 @@
+{
+  "component": "app-globals",
+  "strings": {
+    "en": {
+      "app-name": "frontbase",
+      "description": "React frontend boilerplate starter"
+    },
+    "ro":{
+      "app-name": "frontbase",
+      "description":"Baza de cod a unei aplicatii React"
+    }
+  }
+}
