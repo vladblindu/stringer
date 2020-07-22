@@ -1,6 +1,6 @@
 {
   "name": "@vladblindu/stringer",
-  "version": ".0.1",
+  "version": "0.0.9",
   "description": "String localization management",
   "author": "vladblindu",
   "license": "MIT",

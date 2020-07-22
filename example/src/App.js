@@ -1,22 +1,34 @@
 import React from 'react'
-import { useStrings, useLangs } from 'stringer'
+import { useLangs, useStrings } from 'stringer'
 
 const App = () => {
   const strings = useStrings('app-globals')
-  const [lang, setLang, langs] = useLangs()
+  const { lang, langs, setLang, meta } = useLangs()
   return <div>
     <div>{strings['app-name']}</div>
     <div>{strings['description']}</div>
     <br/>
     <div>Current lang: {lang}</div>
     {langs.map(
-      l =>
+      (l, i) =>
         <button
+          style={{ padding: '0 10px 0 10px' }}
+          key={'dd' + i}
           onClick={
             () => {
-              if (l !== lang) setLang(l)
+              setLang(l)
             }
-          }>{l}</button>
+          }>
+          {meta[l].name}
+          <span>
+            <img
+              width="16"
+              height="16"
+              style={{ marginLeft: '5px' }}
+              src={meta[l].flag}
+              alt="lang-flag"/>
+          </span>
+        </button>
     )}
   </div>
 }

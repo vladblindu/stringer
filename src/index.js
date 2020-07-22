@@ -1,5 +1,6 @@
 import React from 'react'
 import urlJoin from 'url-join'
+import { pick } from './helpers'
 
 export const StringsContext = React.createContext({})
 
@@ -8,32 +9,33 @@ export const StringsProvider = ({
                                   defaultLang,
                                   initialStrings,
                                   httpAgent,
+                                  meta,
                                   children
                                 }) => {
-  const [lang, setLang] = React.useState(defaultLang)
+  const [state, setState] = React.useState({
+    lang: defaultLang,
+    strings: initialStrings
+  })
 
-  let strings = initialStrings
-
-  const changeLang = (newLang) => {
-    if (newLang === lang) return
-    const langUrl = urlJoin('origin://', lang + '.json')
+  const handleSetState = (lang) => {
+    if (lang === state.lang) return
+    const langUrl = urlJoin('origin://locales', lang + '.json')
     httpAgent(langUrl)
       .then((res) => res.json())
-      .then((res) => {
-        strings = res
+      .then((strings) => {
+        setState({ lang, strings })
       })
       .catch((e) => {
-        alert(`Failed to load ${langUrl}`)
-        console.error(e.message)
+        console.log(e)
       })
-    setLang(lang)
   }
 
   const context = {
-    lang,
-    changeLang,
+    lang: state.lang,
+    setLang: handleSetState,
     langs,
-    strings
+    meta,
+    strings: state.strings
   }
 
   return (
@@ -49,13 +51,13 @@ export const useStrings = (compName) => {
     .filter((k) => k.startsWith(compName))
     .reduce((acc, k) => {
       // eslint-disable-next-line no-unused-vars
-      const [_, _k] = k.split('.')
+      const _k = k.split('.')[1]
       acc[_k] = context.strings[k]
       return acc
     }, {})
 }
 
 export const useLangs = () => {
-  const { lang, changeLang, langs } = React.useContext(StringsContext)
-  return [lang, changeLang, langs]
+  const context = React.useContext(StringsContext)
+  return pick(context, 'lang', 'langs', 'setLang', 'meta')
 }

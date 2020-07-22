@@ -1,52 +1,60 @@
 import React from 'react';
-import 'url-join';
+import urlJoin from 'url-join';
 
-var StringsContext = React.createContext({});
-var StringsProvider = function StringsProvider(_ref) {
-  var langs = _ref.langs,
-      defaultLang = _ref.defaultLang,
-      initialStrings = _ref.initialStrings,
-      children = _ref.children;
+const pick = (o, ...keys) => Object.keys(o).reduce((acc, k) => {
+  if (keys.includes(k)) acc[k] = o[k];
+  return acc;
+}, {});
 
-  var _React$useState = React.useState(defaultLang),
-      lang = _React$useState[0],
-      setLang = _React$useState[1];
+const StringsContext = React.createContext({});
+const StringsProvider = ({
+  langs,
+  defaultLang,
+  initialStrings,
+  httpAgent,
+  meta,
+  children
+}) => {
+  const [state, setState] = React.useState({
+    lang: defaultLang,
+    strings: initialStrings
+  });
 
-  var strings = initialStrings;
-
-  var changeLang = function changeLang(lang) {
-    setLang(lang);
+  const handleSetState = lang => {
+    if (lang === state.lang) return;
+    const langUrl = urlJoin('origin://locales', lang + '.json');
+    httpAgent(langUrl).then(res => res.json()).then(strings => {
+      setState({
+        lang,
+        strings
+      });
+    }).catch(e => {
+      console.log(e);
+    });
   };
 
-  var context = {
-    lang: lang,
-    changeLang: changeLang,
-    langs: langs,
-    strings: strings
+  const context = {
+    lang: state.lang,
+    setLang: handleSetState,
+    langs,
+    meta,
+    strings: state.strings
   };
   return /*#__PURE__*/React.createElement(StringsContext.Provider, {
     value: context
   }, children);
 };
-var useStrings = function useStrings(compName) {
-  var context = React.useContext(StringsContext);
-  return Object.keys(context.strings).filter(function (k) {
-    return k.startsWith(compName);
-  }).reduce(function (acc, k) {
-    var _k$split = k.split('.'),
-        _k = _k$split[1];
-
+const useStrings = compName => {
+  const context = React.useContext(StringsContext);
+  return Object.keys(context.strings).filter(k => k.startsWith(compName)).reduce((acc, k) => {
+    const _k = k.split('.')[1];
     acc[_k] = context.strings[k];
     return acc;
   }, {});
 };
-var useLangs = function useLangs() {
-  var _React$useContext = React.useContext(StringsContext),
-      lang = _React$useContext.lang,
-      changeLang = _React$useContext.changeLang,
-      langs = _React$useContext.langs;
-
-  return [lang, changeLang, langs];
+const useLangs = () => {
+  const context = React.useContext(StringsContext);
+  return pick(context, 'lang', 'langs', 'setLang', 'meta');
 };
 
 export { StringsContext, StringsProvider, useLangs, useStrings };

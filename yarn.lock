@@ -3792,7 +3792,7 @@ deep-equal@^1.0.1:
     is-regex "^1.0.4"
     object-is "^1.0.1"
     object-keys "^1.1.1"
-    regexp.prototype.flags "^1.2.0"
+    regexp.prototype.meta "^1.2.0"
 
 deep-is@~0.1.3:
   version "0.1.3"
@@ -9505,9 +9505,9 @@ regex-parser@2.2.10:
   resolved "https://registry.yarnpkg.com/regex-parser/-/regex-parser-2.2.10.tgz#9e66a8f73d89a107616e63b39d4deddfee912b37"
   integrity sha512-8t6074A68gHfU8Neftl0Le6KTDwfGAj7IyjPIMSfikI2wJUTHDMaIq42bUsfVnj8mhx0R+45rdUXHGpN164avA==
 
-regexp.prototype.flags@^1.2.0, regexp.prototype.flags@^1.3.0:
+regexp.prototype.meta@^1.2.0, regexp.prototype.meta@^1.3.0:
   version "1.3.0"
-  resolved "https://registry.yarnpkg.com/regexp.prototype.flags/-/regexp.prototype.flags-1.3.0.tgz#7aba89b3c13a64509dabcf3ca8d9fbb9bdf5cb75"
+  resolved "https://registry.yarnpkg.com/regexp.prototype.meta/-/regexp.prototype.meta-1.3.0.tgz#7aba89b3c13a64509dabcf3ca8d9fbb9bdf5cb75"
   integrity sha512-2+Q0C5g951OlYlJz6yu5/M33IcsESLlLfsyIaLJaG4FA2r4yP8MvVMJUUP/fVBkSpbbbZlS5gynbEWLipiiXiQ==
   dependencies:
     define-properties "^1.1.3"
@@ -10544,7 +10544,7 @@ string.prototype.matchall@^4.0.2:
     es-abstract "^1.17.0"
     has-symbols "^1.0.1"
     internal-slot "^1.0.2"
-    regexp.prototype.flags "^1.3.0"
+    regexp.prototype.meta "^1.3.0"
     side-channel "^1.0.2"
 
 string.prototype.padend@^3.0.0:

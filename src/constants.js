@@ -7,12 +7,12 @@
  */
 
 module.exports = {
-  DEFAULT_CONFIG: 'config/index.js',
+  DEFAULT_CONFIG: 'config/stringer.config.json',
   DEFAULT_ROOT: 'src',
   DEFAULT_PATTERN: 'strings.json',
   DEFAULT_DEST: 'public/locales',
   DEFAULT_LANGS: ['en', 'ro'],
-  DEFAULT_FLAGS_FILE: 'flags,json',
+  DEFAULT_LANG: 'en',
   GLOB_OPTS: {
     absolute: true,
     matchBase: true

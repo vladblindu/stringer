@@ -7,6 +7,7 @@ const fs = require('fs')
 const glob = require('glob')
 const convert = require('base64-img')
 const countryData = require('../locales.defs.json')
+const helpScreen = require('./help-screen')
 
 const {
   DEFAULT_CONFIG,
@@ -15,7 +16,7 @@ const {
   DEFAULT_ROOT,
   DEFAULT_LANGS,
   GLOB_OPTS,
-  DEFAULT_FLAGS_FILE
+  DEFAULT_LANG
 } = require('../src/constants')
 
 const ARGS_TYPE = {
@@ -24,10 +25,9 @@ const ARGS_TYPE = {
   '--pattern': String,
   '--dest': String,
   '--root': String,
-  '--safe': Boolean,
   '--langs': [String],
   '--execute': Boolean,
-  '--flags': String,
+  '--def-lang': String,
   '-c': '--config',
   '-h': '--help',
   '-p': '--pattern',
@@ -36,50 +36,8 @@ const ARGS_TYPE = {
   '-s': '--safe',
   '-l': '--langs',
   '-x': '--execute',
-  '-f': '--flags'
+  '-g': '--def-lang'
 }
-
-const helpScreen = `
-    Usage: stringer [command [param]]
-
-    For help (this screen):
-        stringer --help | stringer -h
-
-    Specify app configuration (defaults to src/config/index.js):
-        stringer --config ./src/config | stringer -c ./src/config
-
-    Remove all locale data
-        stringer --clear | stringer -x
-
-    String files name (glob pattern - defaults to 'strings.js'):
-        stringer --pattern strings.js | stringer -p strings.js
-
-    Locales destination directory (defaults to 'public/locales')
-        stringer --dest  public/locales | stringer -d public/locales
-
-    Root search directory (defaults to 'src')
-        stringer --root  src | stringer -r src
-
-    Safe mode to prevent overwriting (defaults to false)
-        stringer --safe | stringer -s
-
-    Languages (defaults to ['en', 'ro'])
-        stringer --langs en ro | stringer -l
-
-    By default if 'en' is specified you get the the UK flag
-    If you would like to have the US flag instead provide the -u option
-        stringer --langs en fr gr --us | stringer -l en fr gr -u
-
-    Ver 1.0.0 available data:
-      - en(us)
-      - fr
-      - de
-      - es
-      - ro
-
-    Please help increase the data by adding new data
-    in the https://github.com/vladblindu/stringer repo
-`
 
 const args = arg(ARGS_TYPE)
 console.log(
@@ -95,28 +53,27 @@ if (args['--help'] || Object.keys(args).length === 1) {
 const root = path.join(process.cwd(), args['--root'] || DEFAULT_ROOT)
 
 // get configuration if specified in params
-const configPath = args['--config'] || DEFAULT_CONFIG
-let appConfig = {}
+const configPath = path.join(root, args['--config'] || DEFAULT_CONFIG)
+
+let stringerConfig = {}
 if (configPath) {
   try {
-    appConfig = require(path.join(root, configPath))
+    stringerConfig = require(configPath)
   } catch (e) {
     console.warn(
-      `Couldn't load config file: ${configPath}. \n Falling back to provided params or defaults`
+      `No existing configuration file found at ${configPath}. \n Stringer will create one.`
     )
-    console.warn(e.message)
   }
 }
 
-const { pattern, dest, safe, langs, flagsFile } = {
-  pattern: appConfig.stringsFileName || args['--pattern'] || DEFAULT_PATTERN,
+const { pattern, dest, langs, defaultLang } = {
+  pattern: args['--pattern'] || DEFAULT_PATTERN,
   dest: path.join(
     process.cwd(),
-    appConfig.localesPath || args['--dest'] || DEFAULT_DEST
+    stringerConfig.localesPath || args['--dest'] || DEFAULT_DEST
   ),
-  safe: args['--safe'],
-  langs: appConfig.defaultLangs || args['--list'] || DEFAULT_LANGS,
-  flagsFile: args['--file'] || DEFAULT_FLAGS_FILE
+  langs: stringerConfig.langs || args['--list'] || DEFAULT_LANGS,
+  defaultLang: stringerConfig.defaultLang || args['--def-lang'] || DEFAULT_LANG
 }
 
 if (!langs.length) {
@@ -138,12 +95,6 @@ if (!stringFiles.length) {
 let stat = null
 try {
   stat = fs.statSync(dest)
-  if (safe) {
-    console.warn(
-      "Safe mode is enabled. Can't overwrite existing locales. Exiting."
-    )
-    process.exit(0)
-  }
 } catch (_) {
   console.log(`No locales dir found. Creating ${dest} directory`)
 }
@@ -165,7 +116,7 @@ try {
   process.exit(0)
 }
 
-const flagsData = {}
+const meta = {}
 
 langs.forEach((lang) => {
   const tmp = {}
@@ -193,7 +144,7 @@ Please go to https://github.com/vladblindu/stringer, pull, add the lang data, me
     const cData =
       args['--us'] && lang === 'en' ? countryData['us'] : countryData[lang]
 
-    const flagFile = path.join(process.cwd(), '../', 'country-flags', cData.pic)
+    const flagFile = path.join(process.cwd(), '../', 'country-meta', cData.pic)
     let flag
     try {
       flag = convert.base64Sync(flagFile)
@@ -202,7 +153,7 @@ Please go to https://github.com/vladblindu/stringer, pull, add the lang data, me
       process.exit(1)
     }
 
-    flagsData[lang] = {
+    meta[lang] = {
       name: cData.name,
       flag
     }
@@ -229,9 +180,11 @@ Please go to https://github.com/vladblindu/stringer, pull, add the lang data, me
       tmp[key] = stringsData.strings[lang][k]
     })
   })
+  // end of file loop
   const filePath = path.join(dest, lang + '.json')
   try {
     fs.writeFileSync(filePath, JSON.stringify(tmp, null, 2))
+    if (lang === defaultLang) stringerConfig.initialStrings = tmp
   } catch (e) {
     console.warn(`Could not create: \n ${filePath}. Skipping.`)
     console.warn(e.message)
@@ -240,17 +193,20 @@ Please go to https://github.com/vladblindu/stringer, pull, add the lang data, me
   console.log(
     `Lang file: "${path.basename(filePath)}" created...\u001b[32;1mOK\u001b[0m`
   )
-
-  try {
-    fs.writeFileSync(
-      path.join(root, flagsFile),
-      JSON.stringify(flagsData, null, 2)
-    )
-  } catch (e) {
-    console.warn(`Could not create: \n ${filePath}. Skipping.`)
-    console.warn(e.message)
-    return
-  }
-  console.log(`Flags file: "${flagsFile}" created...\u001b[32;1mOK\u001b[0m`)
 })
+// end of lang loop
+stringerConfig.meta = meta
+stringerConfig.defaultLang = defaultLang
+stringerConfig.langs = langs
+stringerConfig.pattern = pattern
+stringerConfig.dest = dest
+
+try {
+  fs.writeFileSync(configPath, JSON.stringify(stringerConfig, null, 2))
+} catch (e) {
+  console.warn(`Could not create: \n ${configPath}. Fatal error.`)
+  console.warn(e.message)
+  return
+}
+console.log(`Config file created/updated ...\u001b[32;1mOK\u001b[0m`)
 console.log('Successfully created localization data.')

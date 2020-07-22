@@ -1,0 +1,13 @@
+{
+  "routes": {
+    "login": {
+      "url": "login",
+      "visitable": true,
+      "specialRoute": "login"
+    },
+    "createUser": {
+      "url": "create-user"
+    }
+  },
+  "theme": {}
+}
