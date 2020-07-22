@@ -1,42 +1,51 @@
 import React from 'react';
+import 'url-join';
 
-const StringsContext = React.createContext({});
-const StringsProvider = ({
-  langs,
-  defaultLang,
-  strings,
-  children
-}) => {
-  const [lang, setLang] = React.useState(defaultLang);
+var StringsContext = React.createContext({});
+var StringsProvider = function StringsProvider(_ref) {
+  var langs = _ref.langs,
+      defaultLang = _ref.defaultLang,
+      initialStrings = _ref.initialStrings,
+      children = _ref.children;
 
-  const changeLang = lang => {
+  var _React$useState = React.useState(defaultLang),
+      lang = _React$useState[0],
+      setLang = _React$useState[1];
+
+  var strings = initialStrings;
+
+  var changeLang = function changeLang(lang) {
     setLang(lang);
   };
 
-  const context = {
-    lang,
-    changeLang,
-    langs,
-    strings: strings[lang]
+  var context = {
+    lang: lang,
+    changeLang: changeLang,
+    langs: langs,
+    strings: strings
   };
   return /*#__PURE__*/React.createElement(StringsContext.Provider, {
     value: context
   }, children);
 };
-const useStrings = compName => {
-  const context = React.useContext(StringsContext);
-  return Object.keys(context.strings).filter(k => k.startsWith(compName)).reduce((acc, k) => {
-    const [_, _k] = k.split('.');
+var useStrings = function useStrings(compName) {
+  var context = React.useContext(StringsContext);
+  return Object.keys(context.strings).filter(function (k) {
+    return k.startsWith(compName);
+  }).reduce(function (acc, k) {
+    var _k$split = k.split('.'),
+        _k = _k$split[1];
+
     acc[_k] = context.strings[k];
     return acc;
   }, {});
 };
-const useLangs = () => {
-  const {
-    lang,
-    changeLang,
-    langs
-  } = React.useContext(StringsContext);
+var useLangs = function useLangs() {
+  var _React$useContext = React.useContext(StringsContext),
+      lang = _React$useContext.lang,
+      changeLang = _React$useContext.changeLang,
+      langs = _React$useContext.langs;
+
   return [lang, changeLang, langs];
 };
 

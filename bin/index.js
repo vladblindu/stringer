@@ -1,17 +1,22 @@
 #!/usr/bin/env node
 
+/* eslint-disable dot-notation */
 const arg = require('arg')
 const path = require('path')
 const fs = require('fs')
 const glob = require('glob')
+const convert = require('base64-img')
+const countryData = require('../locales.defs.json')
+
 const {
   DEFAULT_CONFIG,
   DEFAULT_DEST,
   DEFAULT_PATTERN,
   DEFAULT_ROOT,
   DEFAULT_LANGS,
-  GLOB_OPTS
-} = require('./constants')
+  GLOB_OPTS,
+  DEFAULT_FLAGS_FILE
+} = require('../src/constants')
 
 const ARGS_TYPE = {
   '--help': Boolean,
@@ -22,6 +27,7 @@ const ARGS_TYPE = {
   '--safe': Boolean,
   '--langs': [String],
   '--execute': Boolean,
+  '--flags': String,
   '-c': '--config',
   '-h': '--help',
   '-p': '--pattern',
@@ -29,7 +35,8 @@ const ARGS_TYPE = {
   '-r': '--root',
   '-s': '--safe',
   '-l': '--langs',
-  '-x': '--execute'
+  '-x': '--execute',
+  '-f': '--flags'
 }
 
 const helpScreen = `
@@ -58,11 +65,25 @@ const helpScreen = `
 
     Languages (defaults to ['en', 'ro'])
         stringer --langs en ro | stringer -l
+
+    By default if 'en' is specified you get the the UK flag
+    If you would like to have the US flag instead provide the -u option
+        stringer --langs en fr gr --us | stringer -l en fr gr -u
+
+    Ver 1.0.0 available data:
+      - en(us)
+      - fr
+      - de
+      - es
+      - ro
+
+    Please help increase the data by adding new data
+    in the https://github.com/vladblindu/stringer repo
 `
 
 const args = arg(ARGS_TYPE)
 console.log(
-  '\n\u001b[1mSTRINGER CLI UTILITY. \nPreparing to create localisation files...\u001b[0m'
+  '\n\u001b[1mSTRINGER CLI UTILITY - STRINGS DATA. \nPreparing to create localisation files...\u001b[0m'
 )
 
 // show help screen if requested
@@ -87,14 +108,20 @@ if (configPath) {
   }
 }
 
-const { pattern, dest, safe, langs } = {
+const { pattern, dest, safe, langs, flagsFile } = {
   pattern: appConfig.stringsFileName || args['--pattern'] || DEFAULT_PATTERN,
   dest: path.join(
     process.cwd(),
     appConfig.localesPath || args['--dest'] || DEFAULT_DEST
   ),
   safe: args['--safe'],
-  langs: appConfig.defaultLangs || args['--langs'] || DEFAULT_LANGS
+  langs: appConfig.defaultLangs || args['--list'] || DEFAULT_LANGS,
+  flagsFile: args['--file'] || DEFAULT_FLAGS_FILE
+}
+
+if (!langs.length) {
+  console.error(`No languages specified. For help type stringer -h.`)
+  process.exit(1)
 }
 
 // glob all 'pattern' string files
@@ -138,8 +165,11 @@ try {
   process.exit(0)
 }
 
+const flagsData = {}
+
 langs.forEach((lang) => {
   const tmp = {}
+
   stringFiles.forEach((file) => {
     /**
      * @typedef {object} stringsData
@@ -147,7 +177,38 @@ langs.forEach((lang) => {
      * @param {Object<string>} strings
      */
 
+    if (!countryData[lang]) {
+      console.warn(`No data is available in this version for the ${lang} sourceLangs.
+For now it will be excluded from the list.
+Please go to https://github.com/vladblindu/stringer, pull, add the lang data, merge and retry.`)
+      return
+    }
+
+    /**
+     * @type {object} cData
+     * @param {String} cData.pic
+     * @param {String} cDAta.name
+     */
+
+    const cData =
+      args['--us'] && lang === 'en' ? countryData['us'] : countryData[lang]
+
+    const flagFile = path.join(process.cwd(), '../', 'country-flags', cData.pic)
+    let flag
+    try {
+      flag = convert.base64Sync(flagFile)
+    } catch (e) {
+      console.error(`Could not find file;${cData.pic}. Aborting.`)
+      process.exit(1)
+    }
+
+    flagsData[lang] = {
+      name: cData.name,
+      flag
+    }
+
     let stringsData = {}
+
     try {
       stringsData = require(file)
     } catch (e) {
@@ -179,5 +240,17 @@ langs.forEach((lang) => {
   console.log(
     `Lang file: "${path.basename(filePath)}" created...\u001b[32;1mOK\u001b[0m`
   )
+
+  try {
+    fs.writeFileSync(
+      path.join(root, flagsFile),
+      JSON.stringify(flagsData, null, 2)
+    )
+  } catch (e) {
+    console.warn(`Could not create: \n ${filePath}. Skipping.`)
+    console.warn(e.message)
+    return
+  }
+  console.log(`Flags file: "${flagsFile}" created...\u001b[32;1mOK\u001b[0m`)
 })
 console.log('Successfully created localization data.')

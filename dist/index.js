@@ -1,17 +1,20 @@
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
 var React = _interopDefault(require('react'));
+require('url-join');
 
 var StringsContext = React.createContext({});
 var StringsProvider = function StringsProvider(_ref) {
   var langs = _ref.langs,
       defaultLang = _ref.defaultLang,
-      strings = _ref.strings,
+      initialStrings = _ref.initialStrings,
       children = _ref.children;
 
   var _React$useState = React.useState(defaultLang),
       lang = _React$useState[0],
       setLang = _React$useState[1];
+
+  var strings = initialStrings;
 
   var changeLang = function changeLang(lang) {
     setLang(lang);
@@ -21,7 +24,7 @@ var StringsProvider = function StringsProvider(_ref) {
     lang: lang,
     changeLang: changeLang,
     langs: langs,
-    strings: strings[lang]
+    strings: strings
   };
   return /*#__PURE__*/React.createElement(StringsContext.Provider, {
     value: context

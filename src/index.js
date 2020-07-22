@@ -1,11 +1,31 @@
 import React from 'react'
+import urlJoin from 'url-join'
 
 export const StringsContext = React.createContext({})
 
-export const StringsProvider = ({ langs, defaultLang, strings, children }) => {
+export const StringsProvider = ({
+                                  langs,
+                                  defaultLang,
+                                  initialStrings,
+                                  httpAgent,
+                                  children
+                                }) => {
   const [lang, setLang] = React.useState(defaultLang)
 
-  const changeLang = (lang) => {
+  let strings = initialStrings
+
+  const changeLang = (newLang) => {
+    if (newLang === lang) return
+    const langUrl = urlJoin('origin://', lang + '.json')
+    httpAgent(langUrl)
+      .then((res) => res.json())
+      .then((res) => {
+        strings = res
+      })
+      .catch((e) => {
+        alert(`Failed to load ${langUrl}`)
+        console.error(e.message)
+      })
     setLang(lang)
   }
 
@@ -13,7 +33,7 @@ export const StringsProvider = ({ langs, defaultLang, strings, children }) => {
     lang,
     changeLang,
     langs,
-    strings: strings[lang]
+    strings
   }
 
   return (
