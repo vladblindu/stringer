@@ -144,7 +144,7 @@ Please go to https://github.com/vladblindu/stringer, pull, add the lang data, me
     const cData =
       args['--us'] && lang === 'en' ? countryData['us'] : countryData[lang]
 
-    const flagFile = path.join(process.cwd(), '../', 'country-meta', cData.pic)
+    const flagFile = path.join(__dirname, '../', 'country-flags', cData.pic)
     let flag
     try {
       flag = convert.base64Sync(flagFile)
