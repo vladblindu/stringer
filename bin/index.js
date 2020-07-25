@@ -7,6 +7,26 @@ const fs = require('fs')
 const glob = require('glob')
 const convert = require('base64-img')
 
+/**
+ * @type {object} appConfig
+ * @param {string} appConfig.root
+ * @param {string} appConfig.stringsFileName
+ * @param {string} appConfig.localesPath
+ * @param {string} appConfig.defaultLangs
+ */
+
+const DEFAULT_CONFIG = 'config/stringer.config.json'
+const DEFAULT_ROOT = 'src'
+const DEFAULT_PATTERN = 'strings.json'
+const DEFAULT_DEST = 'public/locales'
+const DEFAULT_LANGS = ['en', 'ro']
+const DEFAULT_LANG = 'en'
+const GLOB_OPTS = {
+  absolute: true,
+  matchBase: true
+}
+
+
 const helpScreen = `
     Usage: stringer [command [param]]
 
@@ -74,16 +94,6 @@ const countryData = {
     'pic': 'spain.png'
   }
 }
-
-const {
-  DEFAULT_CONFIG,
-  DEFAULT_DEST,
-  DEFAULT_PATTERN,
-  DEFAULT_ROOT,
-  DEFAULT_LANGS,
-  GLOB_OPTS,
-  DEFAULT_LANG
-} = require('../src/constants')
 
 const ARGS_TYPE = {
   '--help': Boolean,
