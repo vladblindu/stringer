@@ -1,7 +1,7 @@
 {
   "name": "stringer-example",
   "homepage": ".",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "scripts": {
     "start": "node ../node_modules/react-scripts/bin/react-scripts.js start",
     "build": "node ../node_modules/react-scripts/bin/react-scripts.js build",
@@ -9,7 +9,7 @@
     "eject": "node ../node_modules/react-scripts/bin/react-scripts.js eject"
   },
   "dependencies": {
-    "@vladblindu/fetch-dog": "^1.0.0",
+    "@bitbrother/fetch-dog": "^1.0.0",
     "react": "link:../node_modules/react",
     "react-dom": "link:../node_modules/react-dom",
     "react-scripts": "link:../node_modules/react-scripts",
@@ -26,5 +26,6 @@
     "not dead",
     "not ie <= 11",
     "not op_mini all"
-  ]
+  ],
+  "license": "unlicenced"
 }

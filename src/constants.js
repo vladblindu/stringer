@@ -13,6 +13,7 @@ module.exports = {
   DEFAULT_DEST: 'public/locales',
   DEFAULT_LANGS: ['en', 'ro'],
   DEFAULT_LANG: 'en',
+  ORIGIN: 'origin',
   GLOB_OPTS: {
     absolute: true,
     matchBase: true

@@ -1,10 +1,9 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { StringsProvider } from 'stringer'
-import fetchDog from '@vladblindu/fetch-dog'
+import fetchDog from '@bitbrother/fetch-dog'
 import App from './App'
 import { initialStrings, langs, defaultLang, meta } from './config/stringer.config.json'
-
 
 ReactDOM.render(
   <React.StrictMode>
@@ -13,7 +12,7 @@ ReactDOM.render(
       defaultLang={defaultLang}
       langs={langs}
       meta={meta}
-      httpAgent={fetchDog({ endpoints: {} })}>
+      useHttp={fetchDog({ endpoints: {} }, 'hook')}>
       <App/>
     </StringsProvider>
   </React.StrictMode>,
