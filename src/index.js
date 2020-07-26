@@ -1,9 +1,5 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 import urlJoin from 'url-join'
-import { pick } from './helpers'
-
-const ORIGIN = 'origin'
 
 export const StringsContext = React.createContext({})
 
@@ -12,39 +8,32 @@ export const StringsProvider = ({
                                   defaultLang,
                                   initialStrings,
                                   httpAgent,
-                                  useHttp,
-                                  localesPath,
-                                  meta,
                                   children
                                 }) => {
-  const [state, setState] = React.useState({
-    lang: defaultLang,
-    strings: initialStrings
-  })
+  const [lang, setLang] = React.useState(defaultLang)
 
-  const handleSetState = (lang) => {
-    if (lang === state.lang) return
-    if (localesPath.startsWith('public')) localesPath.replace('public', '')
-    const langUrl = httpAgent
-      ? urlJoin(`origin:/${localesPath}`, lang + '.json')
-      : urlJoin(localesPath, lang + '.json')
-    const _http = httpAgent || useHttp(ORIGIN)
-    _http(langUrl)
+  let strings = initialStrings
+
+  const changeLang = (newLang) => {
+    if (newLang === lang) return
+    const langUrl = urlJoin('origin://', lang + '.json')
+    httpAgent(langUrl)
       .then((res) => res.json())
-      .then((strings) => {
-        setState({ lang, strings })
+      .then((res) => {
+        strings = res
       })
       .catch((e) => {
-        console.log(e)
+        alert(`Failed to load ${langUrl}`)
+        console.error(e.message)
       })
+    setLang(lang)
   }
 
   const context = {
-    lang: state.lang,
-    setLang: handleSetState,
+    lang,
+    changeLang,
     langs,
-    meta,
-    strings: state.strings
+    strings
   }
 
   return (
@@ -54,35 +43,19 @@ export const StringsProvider = ({
   )
 }
 
-StringsProvider.propTypes = {
-  langs: PropTypes.array.isRequired,
-  defaultLang: PropTypes.string,
-  initialStrings: PropTypes.object.isRequired,
-  httpAgent: PropTypes.func,
-  useHttp: PropTypes.func,
-  localesPath: PropTypes.string,
-  meta: PropTypes.object
-}
-
-StringsProvider.defaultProps = {
-  defaultLang: 'en',
-  localesPath: '/locales'
-}
-
-
 export const useStrings = (compName) => {
   const context = React.useContext(StringsContext)
   return Object.keys(context.strings)
     .filter((k) => k.startsWith(compName))
     .reduce((acc, k) => {
       // eslint-disable-next-line no-unused-vars
-      const _k = k.split('.')[1]
+      const [_, _k] = k.split('.')
       acc[_k] = context.strings[k]
       return acc
     }, {})
 }
 
 export const useLangs = () => {
-  const context = React.useContext(StringsContext)
-  return pick(context, 'lang', 'langs', 'setLang', 'meta')
+  const { lang, changeLang, langs } = React.useContext(StringsContext)
+  return [lang, changeLang, langs]
 }

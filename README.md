@@ -1,152 +1,30 @@
-# STRINGER
-### String localization management
+# stringer
 
-[![NPM](https://img.shields.io/npm/v/stringer.svg)](https://www.npmjs.com/package/stringer)
-[![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
+> String localization management
+
+[![NPM](https://img.shields.io/npm/v/stringer.svg)](https://www.npmjs.com/package/stringer) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
 ## Install
 
 ```bash
-npm install --save @vladblindu/stringer
-#or
-yarn add @vladblindu/stinger
+npm install --save stringer
 ```
 
-## Stringer cli - usage
+## Usage
 
-The cli tool scans for strings.json files in your application and generates
-separate language files that are saved (by default) in the
-**"public"** directory under the **"locales"** subfolder
+```jsx
+import React, { Component } from 'react'
 
-The **strings.json** files should have the following format:
-```json
-{
-  "component": "userProfile",
-  "strings": {
-    "en": {
-      "profilePicture": "Profile picture",
-      "lastName": "Last name"
-    },
-    "ro": {
-      "profilePicture": "Fotografie de profil",
-      "lastName": "Prenume"
-    }
+import MyComponent from 'stringer'
+import 'stringer/dist/index.css'
+
+class Example extends Component {
+  render() {
+    return <MyComponent />
   }
 }
 ```
 
-The cli displays the following help screen:
+## License
 
-    Usage: stringer [command] [param]
-
-    For help (this screen):
-        stringer --help | stringer -h
-
-    Specify app configuration (defaults to src/config/stringer.config.json):
-        stringer --config ./src/config/stringer.config.json | stringer -c ./src/config/stringer.config.json
-
-    String files name (glob pattern - defaults to 'strings.json'):
-        stringer --pattern strings.json | stringer -p strings.json
-
-    Locales destination directory (defaults to 'public/locales')
-        stringer --dest  public/locales | stringer -d public/locales
-
-    Root search directory (defaults to 'src')
-        stringer --root  src | stringer -r src
-
-    Safe-mode to prevent overwriting (defaults to false)
-        stringer --safe | stringer -s
-
-    Languages (defaults to ['en', 'ro'])
-        stringer --langs en ro | stringer -l en ro
-
-    By default, if 'en' is specified you get the UK flag
-    If you would like to have the US flag instead provide the -u option
-        stringer --langs en fr gr --us | stringer -l en fr gr -u
-
-    Ver 1.0.0 available data:
-      - en(us)
-      - frx
-      - de
-      - es
-      - ro
-
-    Please help increase the data by adding new data
-    in the https://github.com/vladblindu/stringer repo
-
-## STRINGER REACT COMPONENTS AND HOOKS
-
-the library exports thefollowingentities:
-
-1. **StringsContext** - The strings context object
-2. **StringsProvider** - The context "injector"
-3. **useStrings** - React custom hook, to be inserted in components that use strings
-4. **useLang** - React custom hook, to be consumed in the language control components
-
-Usage:
-
-#### 1. **StringsContext**
-Should be imported only if you want to extend the current's library functionality
-
-#### 2. **StringsProvider**
-Ex:
-```jsx harmony
-    <StringsProvider
-          initialStrings={enStrings}
-          defaultLang={defaultLang}
-          langs={langs}
-          meta={meta}
-          httpAgent={fetchDog({ endpoints: {} })}>
-          <App/>
-        </StringsProvider>
-```
-where:
-
-* initialStrings the initial strings set
-* defaultLang the default language (ex: 'en')
-* the app's suportet language array (ex: ['en', 'fr', 'de'])
-* the meta data saved by the cli tool in the src folder
-* a fetchDog instance
-
-#### 3. **useStrings**
-
-Let's you access the strings context by component name.
-
-ex:
-```jsx harmony
-    ...
-    const strings = useStrings('userProfile')
-    ...
-    return (
-        <label>{strings['profilePicture']}</label>
-    )
-```
-####  **useLang**
-
-This hook let's you write this kind of language control code:
-```jsx harmony
-const { lang, langs, setLang, meta } = useLangs()
-...
-<div>Current lang: {lang}</div>
-    {langs.map(
-      (lang, idx) =>
-        <button
-          key={'key' + idx}
-          onClick={
-            () => {
-              setLang(lang)
-            }
-          }>
-          {meta[lang].name} //english
-          <span>
-            <img
-              width="16"
-              height="16"
-              src={meta[lang].flag} // base64 encoded UK flag
-              alt="lang-flag"/>
-          </span>
-        </button>
-    )}
-```
-
-TODO: Tur this mess into decent docs. Help welcome.
+MIT © [vladblindu](https://github.com/vladblindu)

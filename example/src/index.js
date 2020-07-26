@@ -1,18 +1,22 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { StringsProvider } from 'stringer'
-import fetchDog from '@bitbrother/fetch-dog'
+import enStrings from './locales/en.json'
+import roStrings from './locales/ro.json'
+import { langs, defaultLang } from './config'
 import App from './App'
-import { initialStrings, langs, defaultLang, meta } from './config/stringer.config.json'
+
+const strings = {
+  en: enStrings,
+  ro: roStrings
+}
 
 ReactDOM.render(
   <React.StrictMode>
     <StringsProvider
-      initialStrings={initialStrings}
+      strings={strings}
       defaultLang={defaultLang}
-      langs={langs}
-      meta={meta}
-      useHttp={fetchDog({ endpoints: {} }, 'hook')}>
+      langs={langs}>
       <App/>
     </StringsProvider>
   </React.StrictMode>,

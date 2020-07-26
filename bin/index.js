@@ -6,26 +6,38 @@ const path = require('path')
 const fs = require('fs')
 const glob = require('glob')
 const convert = require('base64-img')
+const countryData = require('../locales.defs.json')
 
-/**
- * @type {object} appConfig
- * @param {string} appConfig.root
- * @param {string} appConfig.stringsFileName
- * @param {string} appConfig.localesPath
- * @param {string} appConfig.defaultLangs
- */
+const {
+  DEFAULT_CONFIG,
+  DEFAULT_DEST,
+  DEFAULT_PATTERN,
+  DEFAULT_ROOT,
+  DEFAULT_LANGS,
+  GLOB_OPTS,
+  DEFAULT_FLAGS_FILE
+} = require('../src/constants')
 
-const DEFAULT_CONFIG = 'config/stringer.config.json'
-const DEFAULT_ROOT = 'src'
-const DEFAULT_PATTERN = 'strings.json'
-const DEFAULT_DEST = 'public/locales'
-const DEFAULT_LANGS = ['en', 'ro']
-const DEFAULT_LANG = 'en'
-const GLOB_OPTS = {
-  absolute: true,
-  matchBase: true
+const ARGS_TYPE = {
+  '--help': Boolean,
+  '--config': String,
+  '--pattern': String,
+  '--dest': String,
+  '--root': String,
+  '--safe': Boolean,
+  '--langs': [String],
+  '--execute': Boolean,
+  '--flags': String,
+  '-c': '--config',
+  '-h': '--help',
+  '-p': '--pattern',
+  '-d': '--locales',
+  '-r': '--root',
+  '-s': '--safe',
+  '-l': '--langs',
+  '-x': '--execute',
+  '-f': '--flags'
 }
-
 
 const helpScreen = `
     Usage: stringer [command [param]]
@@ -68,52 +80,6 @@ const helpScreen = `
     Please help increase the data by adding new data
     in the https://github.com/vladblindu/stringer repo
 `
-const countryData = {
-  'en': {
-    'name': 'english',
-    'pic': 'united-kingdom.png'
-  },
-  'ue': {
-    'name': 'english',
-    'pic': 'united-states-of-america.png'
-  },
-  'fr': {
-    'name': 'francais',
-    'pic': 'france.png'
-  },
-  'ro': {
-    'name': 'romana',
-    'pic': 'romania.png'
-  },
-  'de': {
-    'name': 'deutch',
-    'pic': 'germany.png'
-  },
-  'es': {
-    'name': 'espagnol',
-    'pic': 'spain.png'
-  }
-}
-
-const ARGS_TYPE = {
-  '--help': Boolean,
-  '--config': String,
-  '--pattern': String,
-  '--dest': String,
-  '--root': String,
-  '--langs': [String],
-  '--execute': Boolean,
-  '--def-lang': String,
-  '-c': '--config',
-  '-h': '--help',
-  '-p': '--pattern',
-  '-d': '--locales',
-  '-r': '--root',
-  '-s': '--safe',
-  '-l': '--langs',
-  '-x': '--execute',
-  '-g': '--def-lang'
-}
 
 const args = arg(ARGS_TYPE)
 console.log(
@@ -129,27 +95,28 @@ if (args['--help'] || Object.keys(args).length === 1) {
 const root = path.join(process.cwd(), args['--root'] || DEFAULT_ROOT)
 
 // get configuration if specified in params
-const configPath = path.join(root, args['--config'] || DEFAULT_CONFIG)
-
-let stringerConfig = {}
+const configPath = args['--config'] || DEFAULT_CONFIG
+let appConfig = {}
 if (configPath) {
   try {
-    stringerConfig = require(configPath)
+    appConfig = require(path.join(root, configPath))
   } catch (e) {
     console.warn(
-      `No existing configuration file found at ${configPath}. \n Stringer will create one.`
+      `Couldn't load config file: ${configPath}. \n Falling back to provided params or defaults`
     )
+    console.warn(e.message)
   }
 }
 
-const { pattern, dest, langs, defaultLang } = {
-  pattern: args['--pattern'] || DEFAULT_PATTERN,
+const { pattern, dest, safe, langs, flagsFile } = {
+  pattern: appConfig.stringsFileName || args['--pattern'] || DEFAULT_PATTERN,
   dest: path.join(
     process.cwd(),
-    stringerConfig.localesPath || args['--dest'] || DEFAULT_DEST
+    appConfig.localesPath || args['--dest'] || DEFAULT_DEST
   ),
-  langs: stringerConfig.langs || args['--list'] || DEFAULT_LANGS,
-  defaultLang: stringerConfig.defaultLang || args['--def-lang'] || DEFAULT_LANG
+  safe: args['--safe'],
+  langs: appConfig.defaultLangs || args['--list'] || DEFAULT_LANGS,
+  flagsFile: args['--file'] || DEFAULT_FLAGS_FILE
 }
 
 if (!langs.length) {
@@ -171,6 +138,12 @@ if (!stringFiles.length) {
 let stat = null
 try {
   stat = fs.statSync(dest)
+  if (safe) {
+    console.warn(
+      'Safe mode is enabled. Can\'t overwrite existing locales. Exiting.'
+    )
+    process.exit(0)
+  }
 } catch (_) {
   console.log(`No locales dir found. Creating ${dest} directory`)
 }
@@ -192,7 +165,7 @@ try {
   process.exit(0)
 }
 
-const meta = {}
+const flagsData = {}
 
 langs.forEach((lang) => {
   const tmp = {}
@@ -220,7 +193,7 @@ Please go to https://github.com/vladblindu/stringer, pull, add the lang data, me
     const cData =
       args['--us'] && lang === 'en' ? countryData['us'] : countryData[lang]
 
-    const flagFile = path.join(__dirname, '../', 'country-flags', cData.pic)
+    const flagFile = path.join(process.cwd(), '../', 'country-flags', cData.pic)
     let flag
     try {
       flag = convert.base64Sync(flagFile)
@@ -229,7 +202,7 @@ Please go to https://github.com/vladblindu/stringer, pull, add the lang data, me
       process.exit(1)
     }
 
-    meta[lang] = {
+    flagsData[lang] = {
       name: cData.name,
       flag
     }
@@ -256,11 +229,9 @@ Please go to https://github.com/vladblindu/stringer, pull, add the lang data, me
       tmp[key] = stringsData.strings[lang][k]
     })
   })
-  // end of file loop
   const filePath = path.join(dest, lang + '.json')
   try {
     fs.writeFileSync(filePath, JSON.stringify(tmp, null, 2))
-    if (lang === defaultLang) stringerConfig.initialStrings = tmp
   } catch (e) {
     console.warn(`Could not create: \n ${filePath}. Skipping.`)
     console.warn(e.message)
@@ -269,20 +240,17 @@ Please go to https://github.com/vladblindu/stringer, pull, add the lang data, me
   console.log(
     `Lang file: "${path.basename(filePath)}" created...\u001b[32;1mOK\u001b[0m`
   )
-})
-// end of lang loop
-stringerConfig.meta = meta
-stringerConfig.defaultLang = defaultLang
-stringerConfig.langs = langs
-stringerConfig.pattern = pattern
-stringerConfig.dest = dest
 
-try {
-  fs.writeFileSync(configPath, JSON.stringify(stringerConfig, null, 2))
-} catch (e) {
-  console.warn(`Could not create: \n ${configPath}. Fatal error.`)
-  console.warn(e.message)
-  return
-}
-console.log(`Config file created/updated ...\u001b[32;1mOK\u001b[0m`)
+  try {
+    fs.writeFileSync(
+      path.join(root, flagsFile),
+      JSON.stringify(flagsData, null, 2)
+    )
+  } catch (e) {
+    console.warn(`Could not create: \n ${filePath}. Skipping.`)
+    console.warn(e.message)
+    return
+  }
+  console.log(`Flags file: "${flagsFile}" created...\u001b[32;1mOK\u001b[0m`)
+})
 console.log('Successfully created localization data.')
