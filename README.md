@@ -97,24 +97,20 @@ Ex:
 ```jsx harmony
 import StringsProvider from '@bitbrother/stringer'
 import stringerConfig from './config/stringer.config.json'
-import fetchDog, {ORIGIN, HOOK} from '@bitbrother-fetchDog'
-import httpConfig from 'fetch-dog.config.json'
-
-const httpAgent = fetchDog(httpConfig, HOOK)
 
     <StringsProvider
-          config={stringerConfig} // langs, defaultLang, meta, initialStrings
-          useHttp={httpAgent(ORIGIN)}>
+          config={stringerConfig}>// langs, defaultLang, meta, initialStrings
           <App/>
     </StringsProvider>
 ```
-where:
+the config object should contain the following informtion:
 
-* initialStrings the initial strings set
-* defaultLang the default language (ex: 'en')
-* the app's suportet language array (ex: ['en', 'fr', 'de'])
-* the meta data saved by the cli tool in the src folder
-* a fetchDog instance
+* *initialStrings* the initial strings set
+* *defaultLang* the default language (ex: 'en')
+* *langs* the app's suportet language array (ex: ['en', 'fr', 'de'])
+* the *meta* data saved by the cli tool in the src folder
+There is an optional  *httpAgent* prop if you want to use a different http agent
+(it will be provided a relative url to the public folder where the lang files are stored)
 
 #### 3. **useStrings**
 

@@ -1091,12 +1091,10 @@ var pick = function pick(o) {
   }, {});
 };
 
-var ORIGIN = 'origin';
 var StringsContext = React.createContext({});
 var StringsProvider = function StringsProvider(_ref) {
   var config = _ref.config,
       httpAgent = _ref.httpAgent,
-      useHttp = _ref.useHttp,
       children = _ref.children;
   var langs = config.langs,
       defaultLang = config.defaultLang,
@@ -1113,10 +1111,10 @@ var StringsProvider = function StringsProvider(_ref) {
 
   var handleSetState = function handleSetState(lang) {
     if (lang === state.lang) return;
-    if (localesPath.startsWith('public')) localesPath.replace('public', '');
-    var langUrl = httpAgent ? urlJoin("origin:/" + localesPath, lang + '.json') : urlJoin(localesPath, lang + '.json');
+    var langUrl = urlJoin(localesPath, lang + '.json');
+    if (langUrl[0] !== '/') langUrl = '/' + langUrl;
 
-    var _http = httpAgent || useHttp(ORIGIN);
+    var _http = httpAgent || window.fetch;
 
     _http(langUrl).then(function (res) {
       return res.json();
@@ -1142,13 +1140,9 @@ var StringsProvider = function StringsProvider(_ref) {
   }, children);
 };
 StringsProvider.propTypes = {
-  langs: propTypes.array.isRequired,
-  defaultLang: propTypes.string,
-  initialStrings: propTypes.object.isRequired,
+  config: propTypes.object.isRequired,
   httpAgent: propTypes.func,
-  useHttp: propTypes.func,
-  localesPath: propTypes.string.isRequired,
-  meta: propTypes.object
+  useHttp: propTypes.func
 };
 StringsProvider.defaultProps = {
   defaultLang: 'en',

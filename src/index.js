@@ -3,11 +3,9 @@ import PropTypes from 'prop-types'
 import urlJoin from 'url-join'
 import { pick } from './helpers'
 
-const ORIGIN = 'origin'
-
 export const StringsContext = React.createContext({})
 
-export const StringsProvider = ({ config, httpAgent, useHttp, children }) => {
+export const StringsProvider = ({ config, httpAgent, children }) => {
 
   const {
     langs,
@@ -24,11 +22,9 @@ export const StringsProvider = ({ config, httpAgent, useHttp, children }) => {
 
   const handleSetState = (lang) => {
     if (lang === state.lang) return
-    if (localesPath.startsWith('public')) localesPath.replace('public', '')
-    const langUrl = httpAgent
-      ? urlJoin(`origin:/${localesPath}`, lang + '.json')
-      : urlJoin(localesPath, lang + '.json')
-    const _http = httpAgent || useHttp(ORIGIN)
+    let langUrl = urlJoin(localesPath, lang + '.json')
+    if (langUrl[0] !== '/') langUrl = '/' + langUrl
+    const _http = httpAgent || window.fetch
     _http(langUrl)
       .then((res) => res.json())
       .then((strings) => {
@@ -55,13 +51,9 @@ export const StringsProvider = ({ config, httpAgent, useHttp, children }) => {
 }
 
 StringsProvider.propTypes = {
-  langs: PropTypes.array.isRequired,
-  defaultLang: PropTypes.string,
-  initialStrings: PropTypes.object.isRequired,
+  config: PropTypes.object.isRequired,
   httpAgent: PropTypes.func,
-  useHttp: PropTypes.func,
-  localesPath: PropTypes.string.isRequired,
-  meta: PropTypes.object
+  useHttp: PropTypes.func
 }
 
 StringsProvider.defaultProps = {

@@ -9,8 +9,9 @@
 module.exports = {
   DEFAULT_CONFIG: 'config/stringer.config.json',
   DEFAULT_ROOT: 'src',
+  DEFAULT_PUBLIC: 'public',
   DEFAULT_PATTERN: 'strings.json',
-  DEFAULT_DEST: 'public/locales',
+  DEFAULT_DEST: 'locales',
   DEFAULT_LANGS: ['en', 'ro'],
   DEFAULT_LANG: 'en',
   GLOB_OPTS: {

@@ -13,6 +13,7 @@ const {
   DEFAULT_DEST,
   DEFAULT_PATTERN,
   DEFAULT_ROOT,
+  DEFAULT_PUBLIC,
   DEFAULT_LANGS,
   DEFAULT_LANG,
   GLOB_OPTS
@@ -22,9 +23,10 @@ const ARGS_TYPE = {
   '--help': Boolean,
   '--config': String,
   '--pattern': String,
-  '--dest': String,
+  '--locales': String,
   '--root': String,
   '--langs': [String],
+  '--publicUrl': String,
   '--execute': Boolean,
   '--def-lang': String,
   '-c': '--config',
@@ -34,6 +36,7 @@ const ARGS_TYPE = {
   '-r': '--root',
   '-s': '--safe',
   '-l': '--langs',
+  '-b': '--publicUrl',
   '-x': '--execute',
   '-g': '--def-lang'
 }
@@ -65,11 +68,14 @@ if (configPath) {
   }
 }
 
-const { pattern, dest, langs, defaultLang } = {
+const { pattern, langsDirPath, langs, defaultLang, localesPath, publicUrl } = {
   pattern: stringerConfig.pattern || args['--pattern'] || DEFAULT_PATTERN,
-  dest: path.join(
+  publicUrl: stringerConfig.publicUrl || args['--publicUrl'] || DEFAULT_PUBLIC,
+  localesPath: stringerConfig.localesPath || args['--locales'] || DEFAULT_DEST,
+  langsDirPath: path.join(
     process.cwd(),
-    stringerConfig.localesPath || DEFAULT_DEST || args['--dest']
+    stringerConfig.publicUrl || DEFAULT_PUBLIC,
+    DEFAULT_DEST || args['--locales']
   ),
   langs: stringerConfig.langs || DEFAULT_LANGS || args['--langs'],
   defaultLang: stringerConfig.defaultLang || DEFAULT_LANG || args['--def-lang']
@@ -93,24 +99,24 @@ if (!stringFiles.length) {
 // create directory if none existing
 let stat = null
 try {
-  stat = fs.statSync(dest)
+  stat = fs.statSync(langsDirPath)
 } catch (_) {
-  console.log(`No locales dir found. Creating ${dest} directory`)
+  console.log(`No locales dir found. Creating ${langsDirPath} directory`)
 }
 if (stat) {
   try {
-    fs.rmdirSync(dest, { recursive: true })
-    console.log(`Removing old locales data from the ${dest} directory`)
+    fs.rmdirSync(langsDirPath, { recursive: true })
+    console.log(`Removing old locales data from the ${langsDirPath} directory`)
   } catch (e) {
-    console.error(`Couldn't remove the ${dest} directory. Aborting.`)
+    console.error(`Couldn't remove the ${langsDirPath} directory. Aborting.`)
     console.error(e.message)
     process.exit(0)
   }
 }
 try {
-  fs.mkdirSync(dest, { recursive: true })
+  fs.mkdirSync(langsDirPath, { recursive: true })
 } catch (e) {
-  console.error(`Couldn't create the ${dest} directory. Aborting.`)
+  console.error(`Couldn't create the ${langsDirPath} directory. Aborting.`)
   console.error(e.message)
   process.exit(0)
 }
@@ -180,7 +186,7 @@ Please go to https://github.com/vladblindu/stringer, pull, add the lang data, me
     })
   })
   // end of file loop
-  const filePath = path.join(dest, lang + '.json')
+  const filePath = path.join(langsDirPath, lang + '.json')
   try {
     fs.writeFileSync(filePath, JSON.stringify(tmp, null, 2))
     if (lang === defaultLang) stringerConfig.initialStrings = tmp
@@ -198,7 +204,8 @@ stringerConfig.meta = meta
 stringerConfig.defaultLang = defaultLang
 stringerConfig.langs = langs
 stringerConfig.pattern = pattern
-stringerConfig.dest = dest
+stringerConfig.publicUrl = publicUrl
+stringerConfig.localesPath = localesPath
 
 try {
   fs.writeFileSync(configPath, JSON.stringify(stringerConfig, null, 2))
