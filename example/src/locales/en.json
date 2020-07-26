@@ -1,8 +1,0 @@
-{
-  "users.username": "username",
-  "users.email": "email",
-  "users.password": "password",
-  "users.create-user-title": "Create new user",
-  "app-globals.app-name": "frontbase",
-  "app-globals.description": "React frontend boilerplate starter"
-}

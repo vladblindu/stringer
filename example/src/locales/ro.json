@@ -1,8 +1,0 @@
-{
-  "users.username": "utilizator",
-  "users.email": "email",
-  "users.password": "parola",
-  "users.create-user-title": "Creaza un nou utilizator",
-  "app-globals.app-name": "frontbase",
-  "app-globals.description": "Baza de cod a unei aplicatii React"
-}
