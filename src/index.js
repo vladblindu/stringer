@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import urlJoin from 'url-join'
-import { pick } from './helpers'
+import { capitalize, pick } from './helpers'
 
 export const StringsContext = React.createContext({})
 
@@ -64,14 +64,19 @@ StringsProvider.defaultProps = {
 
 export const useStrings = (compName) => {
   const context = React.useContext(StringsContext)
-  return Object.keys(context.strings)
-    .filter((k) => k.startsWith(compName))
-    .reduce((acc, k) => {
-      // eslint-disable-next-line no-unused-vars
-      const _k = k.split('.')[1]
-      acc[_k] = context.strings[k]
-      return acc
-    }, {})
+  return function(key) {
+    const that = this
+    that.strings = Object.keys(context.strings)
+      .filter((k) => k.startsWith(compName))
+      .reduce((acc, k) => {
+        const _k = k.split('.')[1]
+        acc[_k] = context.strings[k]
+        return acc
+      }, {})
+    that.cap = key => capitalize(this.strings[key])
+    that.upc = key => this.strings[key].toUpperCase()
+    return that.strings[key]
+  }
 }
 
 export const useLangs = () => {
