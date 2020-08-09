@@ -1078,59 +1078,70 @@ if (process.env.NODE_ENV !== 'production') {
 }
 });
 
-var pick = function pick(o) {
-  for (var _len = arguments.length, keys = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-    keys[_key - 1] = arguments[_key];
-  }
+const pick = (o, ...keys) => Object.keys(o).reduce((acc, k) => {
+  if (keys.includes(k)) acc[k] = o[k];
+  return acc;
+}, {});
+const capitalize = st => st[0].toUpperCase() + st.slice(1);
+const mustacheIt = (strIn, vars = {}) => {
+  const pattern = new RegExp('{{([0-9a-zA-Z_-]+)}}', 'g');
+  return strIn.replace(pattern, (match, i, index) => {
+    let result;
 
-  return Object.keys(o).reduce(function (acc, k) {
-    if (keys.includes(k)) acc[k] = o[k];
-    return acc;
-  }, {});
+    if (strIn[index - 1] === '{{' && strIn[index + match.length] === '}}') {
+      return i;
+    } else {
+      result = vars.hasOwnProperty(i) ? vars[i] : null;
+
+      if (result === null || result === undefined) {
+        return '';
+      }
+
+      return result;
+    }
+  });
 };
 
-var StringsContext = React.createContext({});
-var StringsProvider = function StringsProvider(_ref) {
-  var config = _ref.config,
-      httpAgent = _ref.httpAgent,
-      children = _ref.children;
-  var langs = config.langs,
-      defaultLang = config.defaultLang,
-      initialStrings = config.initialStrings,
-      localesPath = config.localesPath,
-      meta = config.meta;
-
-  var _React$useState = React.useState({
+const StringsContext = React.createContext({});
+const StringsProvider = ({
+  config,
+  httpAgent,
+  children
+}) => {
+  const {
+    langs,
+    defaultLang,
+    initialStrings,
+    localesPath,
+    meta
+  } = config;
+  const [state, setState] = React.useState({
     lang: defaultLang,
     strings: initialStrings
-  }),
-      state = _React$useState[0],
-      setState = _React$useState[1];
+  });
 
-  var handleSetState = function handleSetState(lang) {
+  const handleSetState = lang => {
     if (lang === state.lang) return;
-    var langUrl = urlJoin(localesPath, lang + '.json');
+    let langUrl = urlJoin(localesPath, lang + '.json');
     if (langUrl[0] !== '/') langUrl = '/' + langUrl;
 
-    var _http = httpAgent || window.fetch;
+    const _http = httpAgent || window.fetch;
 
-    _http(langUrl).then(function (res) {
-      return res.json();
-    }).then(function (strings) {
+    _http(langUrl).then(res => res.json()).then(strings => {
       setState({
-        lang: lang,
-        strings: strings
+        lang,
+        strings
       });
-    })["catch"](function (e) {
+    }).catch(e => {
       console.log(e);
     });
   };
 
-  var context = {
+  const context = {
     lang: state.lang,
     setLang: handleSetState,
-    langs: langs,
-    meta: meta,
+    langs,
+    meta,
     strings: state.strings
   };
   return /*#__PURE__*/React.createElement(StringsContext.Provider, {
@@ -1146,18 +1157,72 @@ StringsProvider.defaultProps = {
   defaultLang: 'en',
   localesPath: '/locales'
 };
-var useStrings = function useStrings(compName) {
-  var context = React.useContext(StringsContext);
-  return Object.keys(context.strings).filter(function (k) {
-    return k.startsWith(compName);
-  }).reduce(function (acc, k) {
-    var _k = k.split('.')[1];
-    acc[_k] = context.strings[k];
-    return acc;
-  }, {});
+
+class Strings {
+  constructor(strings, compName) {
+    this._strings = Object.keys(strings).filter(k => k.startsWith(compName)).reduce((acc, k) => {
+      const _k = k.split('.')[1];
+      acc[_k] = strings[k];
+      return acc;
+    }, {});
+    this.cap = this.cap.bind(this);
+    this.upc = this.upc.bind(this);
+    this.noc = this.noc.bind(this);
+    this.loc = this.loc.bind(this);
+    this.tpl = this.tpl.bind(this);
+  }
+
+  _complain(key) {
+    if (!this._strings[key]) throw new Error(`DEVERR: No strings registered for key:${key}`);
+  }
+
+  noc(key) {
+    this._complain(key);
+
+    return this._strings[key];
+  }
+
+  cap(key) {
+    this._complain(key);
+
+    return capitalize(this._strings[key]);
+  }
+
+  upc(key) {
+    this._complain(key);
+
+    return this._strings[key].toUpperCase();
+  }
+
+  loc(key) {
+    this._complain(key);
+
+    return this._strings[key].toLowerCase();
+  }
+
+  tpl(key, vars) {
+    this._complain(key);
+
+    console.log(this._strings[key]);
+    console.log(vars);
+    return mustacheIt(this._strings[key], vars);
+  }
+
+}
+
+const useStrings = compName => {
+  const context = React.useContext(StringsContext);
+  const strings = new Strings(context.strings, compName);
+  return {
+    noc: strings.noc,
+    cap: strings.cap,
+    upc: strings.upc,
+    loc: strings.loc,
+    tpl: strings.tpl
+  };
 };
-var useLangs = function useLangs() {
-  var context = React.useContext(StringsContext);
+const useLangs = () => {
+  const context = React.useContext(StringsContext);
   return pick(context, 'lang', 'langs', 'setLang', 'meta');
 };
 

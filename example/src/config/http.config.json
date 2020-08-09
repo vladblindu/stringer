@@ -1,0 +1,23 @@
+{
+  "endpoints": {
+    "gqlEndpoint": {},
+    "login": {
+      "url": "auth/login",
+      "method": "post",
+      "headers": {
+        "content-type": "application/json"
+      }
+    },
+    "register": {
+      "url": "auth/registration",
+      "method": "post",
+      "headers": {
+        "content-type": "application/json"
+      }
+    }
+  },
+  "baseUrl": "http://localhost:3001",
+  "baseHeaders": {
+    "x-api-key": "dummy-api-key"
+  }
+}

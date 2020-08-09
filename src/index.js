@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import urlJoin from 'url-join'
-import { capitalize, pick } from './helpers'
+import { capitalize, mustacheIt, pick } from './helpers'
 
 export const StringsContext = React.createContext({})
 
@@ -61,21 +61,77 @@ StringsProvider.defaultProps = {
   localesPath: '/locales'
 }
 
-
-export const useStrings = (compName) => {
-  const context = React.useContext(StringsContext)
-  return function(key) {
-    const that = this
-    that.strings = Object.keys(context.strings)
+class Strings {
+  constructor(strings, compName) {
+    this._strings = Object.keys(strings)
       .filter((k) => k.startsWith(compName))
       .reduce((acc, k) => {
         const _k = k.split('.')[1]
-        acc[_k] = context.strings[k]
+        acc[_k] = strings[k]
         return acc
       }, {})
-    that.cap = key => capitalize(this.strings[key])
-    that.upc = key => this.strings[key].toUpperCase()
-    return that.strings[key]
+    this.cap = this.cap.bind(this)
+    this.upc = this.upc.bind(this)
+    this.noc = this.noc.bind(this)
+    this.loc = this.loc.bind(this)
+    this.tpl = this.tpl.bind(this)
+  }
+
+  // TODO separate DEV and PROD behaviours
+  _complain(key) {
+    if (!this._strings[key])
+      throw new Error(`DEVERR: No strings registered for key:${key}`)
+  }
+
+  noc(key) {
+    this._complain(key)
+    return this._strings[key]
+  }
+
+  cap(key) {
+    this._complain(key)
+    return capitalize(this._strings[key])
+  }
+
+  upc(key) {
+    this._complain(key)
+    return this._strings[key].toUpperCase()
+  }
+
+  loc(key) {
+    this._complain(key)
+    return this._strings[key].toLowerCase()
+  }
+
+  tpl(key, vars) {
+    this._complain(key)
+    console.log(this._strings[key])
+    console.log(vars)
+    return mustacheIt(this._strings[key], vars)
+  }
+}
+
+/**
+ *
+ * @param {string} compName
+ * @returns {{normCase: (function(string): string),
+ * noc: (function(string): string),
+ * cap: (function(string): string),
+ * upc: (function(string): string),
+ * loc: (function(string): string)
+ * capitalized: (function(string): string),
+ * upperCase: (function(string): string),
+ * lowerCase: (function(string): string)}}
+ */
+export const useStrings = (compName) => {
+  const context = React.useContext(StringsContext)
+  const strings = new Strings(context.strings, compName)
+  return {
+    noc: strings.noc,
+    cap: strings.cap,
+    upc: strings.upc,
+    loc: strings.loc,
+    tpl: strings.tpl
   }
 }
 

@@ -1090,6 +1090,31 @@ var pick = function pick(o) {
     return acc;
   }, {});
 };
+var capitalize = function capitalize(st) {
+  return st[0].toUpperCase() + st.slice(1);
+};
+var mustacheIt = function mustacheIt(strIn, vars) {
+  if (vars === void 0) {
+    vars = {};
+  }
+
+  var pattern = new RegExp('{{([0-9a-zA-Z_-]+)}}', 'g');
+  return strIn.replace(pattern, function (match, i, index) {
+    var result;
+
+    if (strIn[index - 1] === '{{' && strIn[index + match.length] === '}}') {
+      return i;
+    } else {
+      result = vars.hasOwnProperty(i) ? vars[i] : null;
+
+      if (result === null || result === undefined) {
+        return '';
+      }
+
+      return result;
+    }
+  });
+};
 
 var StringsContext = React.createContext({});
 var StringsProvider = function StringsProvider(_ref) {
@@ -1148,15 +1173,74 @@ StringsProvider.defaultProps = {
   defaultLang: 'en',
   localesPath: '/locales'
 };
+
+var Strings = /*#__PURE__*/function () {
+  function Strings(strings, compName) {
+    this._strings = Object.keys(strings).filter(function (k) {
+      return k.startsWith(compName);
+    }).reduce(function (acc, k) {
+      var _k = k.split('.')[1];
+      acc[_k] = strings[k];
+      return acc;
+    }, {});
+    this.cap = this.cap.bind(this);
+    this.upc = this.upc.bind(this);
+    this.noc = this.noc.bind(this);
+    this.loc = this.loc.bind(this);
+    this.tpl = this.tpl.bind(this);
+  }
+
+  var _proto = Strings.prototype;
+
+  _proto._complain = function _complain(key) {
+    if (!this._strings[key]) throw new Error("DEVERR: No strings registered for key:" + key);
+  };
+
+  _proto.noc = function noc(key) {
+    this._complain(key);
+
+    return this._strings[key];
+  };
+
+  _proto.cap = function cap(key) {
+    this._complain(key);
+
+    return capitalize(this._strings[key]);
+  };
+
+  _proto.upc = function upc(key) {
+    this._complain(key);
+
+    return this._strings[key].toUpperCase();
+  };
+
+  _proto.loc = function loc(key) {
+    this._complain(key);
+
+    return this._strings[key].toLowerCase();
+  };
+
+  _proto.tpl = function tpl(key, vars) {
+    this._complain(key);
+
+    console.log(this._strings[key]);
+    console.log(vars);
+    return mustacheIt(this._strings[key], vars);
+  };
+
+  return Strings;
+}();
+
 var useStrings = function useStrings(compName) {
   var context = React.useContext(StringsContext);
-  return Object.keys(context.strings).filter(function (k) {
-    return k.startsWith(compName);
-  }).reduce(function (acc, k) {
-    var _k = k.split('.')[1];
-    acc[_k] = context.strings[k];
-    return acc;
-  }, {});
+  var strings = new Strings(context.strings, compName);
+  return {
+    noc: strings.noc,
+    cap: strings.cap,
+    upc: strings.upc,
+    loc: strings.loc,
+    tpl: strings.tpl
+  };
 };
 var useLangs = function useLangs() {
   var context = React.useContext(StringsContext);

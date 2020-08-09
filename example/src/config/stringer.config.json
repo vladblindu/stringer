@@ -1,7 +1,8 @@
 {
   "initialStrings": {
     "app-globals.app-name": "frontbase",
-    "app-globals.description": "React frontend boilerplate starter"
+    "app-globals.description": "React frontend boilerplate starter",
+    "app-globals.template-example": "The name of the app is {{appName}}."
   },
   "meta": {
     "en": {

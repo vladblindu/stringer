@@ -3,11 +3,13 @@
   "strings": {
     "en": {
       "app-name": "frontbase",
-      "description": "React frontend boilerplate starter"
+      "description": "React frontend boilerplate starter",
+      "template-example": "The name of the app is {{appName}}."
     },
     "ro": {
       "app-name": "frontbase",
-      "description": "Baza de cod a unei aplicatii React"
+      "description": "Baza de cod a unei aplicatii React",
+      "template-example": "Numele aplictiei este {{appName}}."
     }
   }
 }

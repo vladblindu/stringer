@@ -114,7 +114,19 @@ There is an optional  *httpAgent* prop if you want to use a different http agent
 
 #### 3. **useStrings**
 
-Let's you access the strings context by component name.
+Let's you access the strings context by component name exposing multiple
+case options functions
+
+- **noc**: no case manipulation, gets the raw version from lock json,
+- **cap**: capitalizes the first letter
+- **upc**: all to uppercase,
+- **loc**: all to lowercase,
+
+All these functions expect one parameter **key** representing the name of the string in **strings.json**
+
+- **tpl**: no case manipulation but offers a mustache type templating based on **{{varName}}**
+delimiters
+
 
 ex:
 ```jsx harmony
@@ -152,5 +164,7 @@ const { lang, langs, setLang, meta } = useLangs()
         </button>
     )}
 ```
-
-TODO: Tur this mess into decent docs. Help welcome.
+#### Vers 2.0.1 TODO list
+1. Turn this mess into decent docs. Help welcome.
+2. Differenciate behaviour of **_complain** method in DEV and PROD mede
+3. Eliminate the need of the -x (execute) parameter in the cli utility
