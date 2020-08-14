@@ -125,9 +125,7 @@ the config object should contain the following informtion:
 * the *meta* data saved by the cli tool in the src folder
 
 __There is an optional  *httpAgent* prop if you want to use a different http agent
-(it will be provided a relative url to the public folder where the lang files are stored)
-By default **STRINGER** uses the **@bitbrother/fetch-dog-hooks** package for http trafic,
-which itself relies on the default **fetch** functtion__
+(it will be provided a relative url to the public folder where the lang files are stored)__
 
 #### 3. **useStrings**
 
@@ -184,7 +182,3 @@ const { lang, langs, setLang, meta } = useLangs()
 #### Vers 2.0.1 TODO list
 1. Turn this mess into decent docs. Help welcome.
 2. Differenciate behaviour of **_complain** method in DEV and PROD mede
-3. Eliminate the need of the -x (execute) parameter in the cli utility
-4. Add **component** pattern as *.strings.json, where * is the components name.
-In this case the component key in the strings file becomes optional
-5.add speciall **validation** section in strings.json

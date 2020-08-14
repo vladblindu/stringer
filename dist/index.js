@@ -1121,6 +1121,9 @@ var StringsProvider = function StringsProvider(_ref) {
   var config = _ref.config,
       children = _ref.children;
   if (!window.fetch) console.error('BROWSER_ERROR: The stringer library depends on the globally availability of the fetch function.');
+
+  var _http = config.http || window.fetch;
+
   var langs = config.langs,
       defaultLang = config.defaultLang,
       initialStrings = config.initialStrings,
@@ -1138,7 +1141,8 @@ var StringsProvider = function StringsProvider(_ref) {
     if (lang === state.lang) return;
     var langUrl = urlJoin(localesPath, lang + '.json');
     if (langUrl[0] !== '/') langUrl = '/' + langUrl;
-    window.fetch(langUrl).then(function (res) {
+
+    _http(langUrl).then(function (res) {
       return res.json();
     }).then(function (strings) {
       setState({

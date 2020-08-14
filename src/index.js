@@ -8,6 +8,7 @@ export const StringsContext = React.createContext({})
 export const StringsProvider = ({ config, children }) => {
 
   if (!window.fetch) console.error('BROWSER_ERROR: The stringer library depends on the globally availability of the fetch function.')
+  const _http = config.http || window.fetch
   const {
     langs,
     defaultLang,
@@ -25,7 +26,7 @@ export const StringsProvider = ({ config, children }) => {
     if (lang === state.lang) return
     let langUrl = urlJoin(localesPath, lang + '.json')
     if (langUrl[0] !== '/') langUrl = '/' + langUrl
-    window.fetch(langUrl)
+    _http(langUrl)
       .then((res) => res.json())
       .then((strings) => {
         setState({ lang, strings })
