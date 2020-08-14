@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { StringsProvider } from 'stringer'
-import config from './config/stringer.config.json'
+import config from './config/strings.config.json'
 import App from './App'
 
 ReactDOM.render(
@@ -10,6 +10,7 @@ ReactDOM.render(
       config={config}>
       <App/>
     </StringsProvider>
-  </React.StrictMode>,
+  </React.StrictMode>
+  ,
   document.getElementById('root')
 )

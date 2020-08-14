@@ -1119,8 +1119,8 @@ var mustacheIt = function mustacheIt(strIn, vars) {
 var StringsContext = React.createContext({});
 var StringsProvider = function StringsProvider(_ref) {
   var config = _ref.config,
-      httpAgent = _ref.httpAgent,
       children = _ref.children;
+  if (!window.fetch) console.error('BROWSER_ERROR: The stringer library depends on the globally availability of the fetch function.');
   var langs = config.langs,
       defaultLang = config.defaultLang,
       initialStrings = config.initialStrings,
@@ -1138,10 +1138,7 @@ var StringsProvider = function StringsProvider(_ref) {
     if (lang === state.lang) return;
     var langUrl = urlJoin(localesPath, lang + '.json');
     if (langUrl[0] !== '/') langUrl = '/' + langUrl;
-
-    var _http = httpAgent || window.fetch;
-
-    _http(langUrl).then(function (res) {
+    window.fetch(langUrl).then(function (res) {
       return res.json();
     }).then(function (strings) {
       setState({
@@ -1223,8 +1220,6 @@ var Strings = /*#__PURE__*/function () {
   _proto.tpl = function tpl(key, vars) {
     this._complain(key);
 
-    console.log(this._strings[key]);
-    console.log(vars);
     return mustacheIt(this._strings[key], vars);
   };
 

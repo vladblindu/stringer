@@ -4,6 +4,7 @@
 const arg = require('arg')
 const path = require('path')
 const fs = require('fs')
+const pkgDir = require('pkg-dir')
 const glob = require('glob')
 const convert = require('base64-img')
 const countryData = require('../locales.defs.json')
@@ -16,7 +17,9 @@ const {
   DEFAULT_PUBLIC,
   DEFAULT_LANGS,
   DEFAULT_LANG,
-  GLOB_OPTS
+  GLOB_OPTS,
+  DEFAULT_EXTENSION,
+  DEFAULT_FILE
 } = require('./constants')
 
 const ARGS_TYPE = {
@@ -27,7 +30,6 @@ const ARGS_TYPE = {
   '--root': String,
   '--langs': [String],
   '--publicUrl': String,
-  '--execute': Boolean,
   '--def-lang': String,
   '-c': '--config',
   '-h': '--help',
@@ -37,7 +39,6 @@ const ARGS_TYPE = {
   '-s': '--safe',
   '-l': '--langs',
   '-b': '--publicUrl',
-  '-x': '--execute',
   '-g': '--def-lang'
 }
 
@@ -47,12 +48,12 @@ console.log(
 )
 
 // show help screen if requested
-if (args['--help'] || Object.keys(args).length === 1) {
+if (args['--help'] || args._.length > 0) {
   console.log(helpScreen)
   process.exit(0)
 }
 
-const root = path.join(process.cwd(), args['--root'] || DEFAULT_ROOT)
+const root = path.join(pkgDir.sync(), args['--root'] || DEFAULT_ROOT)
 
 // get configuration if specified in params
 const configPath = path.join(root, args['--config'] || DEFAULT_CONFIG)
@@ -125,14 +126,14 @@ const meta = {}
 
 langs.forEach((lang) => {
   const tmp = {}
-
+  console.log(`Extracting lang: ${lang}`)
   stringFiles.forEach((file) => {
     /**
-     * @typedef {object} stringsData
+     * @typedef {object} fileData
      * @param {String} component
      * @param {Object<string>} strings
      */
-
+    process.stdout.write(`Processing file:${file}`)
     if (!countryData[lang]) {
       console.warn(`No data is available in this version for the ${lang} sourceLangs.
 For now it will be excluded from the list.
@@ -162,11 +163,12 @@ Please go to https://github.com/vladblindu/stringer, pull, add the lang data, me
       name: cData.name,
       flag
     }
-
-    let stringsData = {}
+    const component = (path.basename(file) !== DEFAULT_FILE) && path.basename(
+      file.replace(DEFAULT_EXTENSION, '').trim())
+    let fileData = {}
 
     try {
-      stringsData = require(file)
+      fileData = require(file)
     } catch (e) {
       console.warn(
         `File ${file} is corrupted or it's format is not readable. Skipping file.`
@@ -174,16 +176,24 @@ Please go to https://github.com/vladblindu/stringer, pull, add the lang data, me
       console.warn(e.message)
       return
     }
-    if (!stringsData.strings[lang]) {
+    const stringsData = fileData.strings || fileData
+    const suspiciousKeys = Object.keys(stringsData).filter(k => k.length !== 2)
+    if (suspiciousKeys.length) {
+      console.log(`Something is wrong with the ${file} format. ` +
+        `The following keys don't seem to be language codes: ${suspiciousKeys.join(', ')}.`)
+    }
+    if (!stringsData[lang]) {
       console.warn(
         `File ${file} has no '${lang}' data available. Skipping file.`
       )
       return
     }
-    Object.keys(stringsData.strings[lang]).forEach((k) => {
-      const key = stringsData.component + '.' + k
-      tmp[key] = stringsData.strings[lang][k]
+
+    Object.keys(stringsData[lang]).forEach((k) => {
+      const key = (component || fileData.component) + '.' + k
+      tmp[key] = stringsData[lang][k]
     })
+    process.stdout.write('...\u001b[32;1mOK\u001b[0m\n')
   })
   // end of file loop
   const filePath = path.join(langsDirPath, lang + '.json')

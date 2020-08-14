@@ -5,8 +5,9 @@ import { capitalize, mustacheIt, pick } from './helpers'
 
 export const StringsContext = React.createContext({})
 
-export const StringsProvider = ({ config, httpAgent, children }) => {
+export const StringsProvider = ({ config, children }) => {
 
+  if (!window.fetch) console.error('BROWSER_ERROR: The stringer library depends on the globally availability of the fetch function.')
   const {
     langs,
     defaultLang,
@@ -24,8 +25,7 @@ export const StringsProvider = ({ config, httpAgent, children }) => {
     if (lang === state.lang) return
     let langUrl = urlJoin(localesPath, lang + '.json')
     if (langUrl[0] !== '/') langUrl = '/' + langUrl
-    const _http = httpAgent || window.fetch
-    _http(langUrl)
+    window.fetch(langUrl)
       .then((res) => res.json())
       .then((strings) => {
         setState({ lang, strings })
@@ -105,8 +105,6 @@ class Strings {
 
   tpl(key, vars) {
     this._complain(key)
-    console.log(this._strings[key])
-    console.log(vars)
     return mustacheIt(this._strings[key], vars)
   }
 }

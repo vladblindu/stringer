@@ -1,0 +1,10 @@
+{
+  "en": {
+    "nested-key": "nested-key-value",
+    "nested-description": "Nested description value"
+  },
+  "ro": {
+    "nested-key": "RO-nested-key-value",
+    "nested-description": "RO-Nested description value"
+  }
+}

@@ -1,5 +1,7 @@
 {
   "initialStrings": {
+    "nested.nested-key": "nested-key-value",
+    "nested.nested-description": "Nested description value",
     "app-globals.app-name": "frontbase",
     "app-globals.description": "React frontend boilerplate starter",
     "app-globals.template-example": "The name of the app is {{appName}}."
@@ -19,7 +21,7 @@
     "en",
     "ro"
   ],
-  "pattern": "strings.json",
+  "pattern": "+(strings.json|*.strings.json)",
   "publicUrl": "public",
   "localesPath": "locales"
 }
