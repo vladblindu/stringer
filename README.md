@@ -178,7 +178,10 @@ const { lang, langs, setLang, meta } = useLangs()
           </span>
         </button>
     )}
-```
-#### Vers 2.0.1 TODO list
+````
+#### TODO list
 1. Turn this mess into decent docs. Help welcome.
 2. Differenciate behaviour of **_complain** method in DEV and PROD mede
+
+#### Change log
+1.0.1 Added rejection for empty or inexisting strings context

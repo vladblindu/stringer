@@ -124,6 +124,8 @@ class Strings {
  */
 export const useStrings = (compName) => {
   const context = React.useContext(StringsContext)
+  if (!context || !Object.keys(context).length)
+    throw new Error('DEVERR: No HOC providing strings context for the useStrings hook.')
   const strings = new Strings(context.strings, compName)
   return {
     noc: strings.noc,

@@ -1078,15 +1078,27 @@ if (process.env.NODE_ENV !== 'production') {
 }
 });
 
-const pick = (o, ...keys) => Object.keys(o).reduce((acc, k) => {
-  if (keys.includes(k)) acc[k] = o[k];
-  return acc;
-}, {});
-const capitalize = st => st[0].toUpperCase() + st.slice(1);
-const mustacheIt = (strIn, vars = {}) => {
-  const pattern = new RegExp('{{([0-9a-zA-Z_-]+)}}', 'g');
-  return strIn.replace(pattern, (match, i, index) => {
-    let result;
+var pick = function pick(o) {
+  for (var _len = arguments.length, keys = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    keys[_key - 1] = arguments[_key];
+  }
+
+  return Object.keys(o).reduce(function (acc, k) {
+    if (keys.includes(k)) acc[k] = o[k];
+    return acc;
+  }, {});
+};
+var capitalize = function capitalize(st) {
+  return st[0].toUpperCase() + st.slice(1);
+};
+var mustacheIt = function mustacheIt(strIn, vars) {
+  if (vars === void 0) {
+    vars = {};
+  }
+
+  var pattern = new RegExp('{{([0-9a-zA-Z_-]+)}}', 'g');
+  return strIn.replace(pattern, function (match, i, index) {
+    var result;
 
     if (strIn[index - 1] === '{{' && strIn[index + match.length] === '}}') {
       return i;
@@ -1102,47 +1114,49 @@ const mustacheIt = (strIn, vars = {}) => {
   });
 };
 
-const StringsContext = React.createContext({});
-const StringsProvider = ({
-  config,
-  children
-}) => {
+var StringsContext = React.createContext({});
+var StringsProvider = function StringsProvider(_ref) {
+  var config = _ref.config,
+      children = _ref.children;
   if (!window.fetch) console.error('BROWSER_ERROR: The stringer library depends on the globally availability of the fetch function.');
 
-  const _http = config.http || window.fetch;
+  var _http = config.http || window.fetch;
 
-  const {
-    langs,
-    defaultLang,
-    initialStrings,
-    localesPath,
-    meta
-  } = config;
-  const [state, setState] = React.useState({
+  var langs = config.langs,
+      defaultLang = config.defaultLang,
+      initialStrings = config.initialStrings,
+      localesPath = config.localesPath,
+      meta = config.meta;
+
+  var _React$useState = React.useState({
     lang: defaultLang,
     strings: initialStrings
-  });
+  }),
+      state = _React$useState[0],
+      setState = _React$useState[1];
 
-  const handleSetState = lang => {
+  var handleSetState = function handleSetState(lang) {
     if (lang === state.lang) return;
-    let langUrl = urlJoin(localesPath, lang + '.json');
+    var langUrl = urlJoin(localesPath, lang + '.json');
     if (langUrl[0] !== '/') langUrl = '/' + langUrl;
 
-    _http(langUrl).then(res => res.json()).then(strings => {
+    _http(langUrl).then(function (res) {
+      return res.json();
+    }).then(function (strings) {
       setState({
-        lang,
-        strings
+        lang: lang,
+        strings: strings
       });
-    }).catch(e => {
+    })["catch"](function (e) {
       console.log(e);
     });
   };
 
-  const context = {
+  var context = {
     lang: state.lang,
     setLang: handleSetState,
-    langs,
-    meta,
+    langs: langs,
+    meta: meta,
     strings: state.strings
   };
   return /*#__PURE__*/React.createElement(StringsContext.Provider, {
@@ -1159,10 +1173,12 @@ StringsProvider.defaultProps = {
   localesPath: '/locales'
 };
 
-class Strings {
-  constructor(strings, compName) {
-    this._strings = Object.keys(strings).filter(k => k.startsWith(compName)).reduce((acc, k) => {
-      const _k = k.split('.')[1];
+var Strings = /*#__PURE__*/function () {
+  function Strings(strings, compName) {
+    this._strings = Object.keys(strings).filter(function (k) {
+      return k.startsWith(compName);
+    }).reduce(function (acc, k) {
+      var _k = k.split('.')[1];
       acc[_k] = strings[k];
       return acc;
     }, {});
@@ -1173,45 +1189,49 @@ class Strings {
     this.tpl = this.tpl.bind(this);
   }
 
-  _complain(key) {
-    if (!this._strings[key]) throw new Error(`DEVERR: No strings registered for key:${key}`);
-  }
+  var _proto = Strings.prototype;
 
-  noc(key) {
+  _proto._complain = function _complain(key) {
+    if (!this._strings[key]) throw new Error("DEVERR: No strings registered for key:" + key);
+  };
+
+  _proto.noc = function noc(key) {
     this._complain(key);
 
     return this._strings[key];
-  }
+  };
 
-  cap(key) {
+  _proto.cap = function cap(key) {
     this._complain(key);
 
     return capitalize(this._strings[key]);
-  }
+  };
 
-  upc(key) {
+  _proto.upc = function upc(key) {
     this._complain(key);
 
     return this._strings[key].toUpperCase();
-  }
+  };
 
-  loc(key) {
+  _proto.loc = function loc(key) {
     this._complain(key);
 
     return this._strings[key].toLowerCase();
-  }
+  };
 
-  tpl(key, vars) {
+  _proto.tpl = function tpl(key, vars) {
     this._complain(key);
 
     return mustacheIt(this._strings[key], vars);
-  }
+  };
 
-}
+  return Strings;
+}();
 
-const useStrings = compName => {
-  const context = React.useContext(StringsContext);
-  const strings = new Strings(context.strings, compName);
+var useStrings = function useStrings(compName) {
+  var context = React.useContext(StringsContext);
+  if (!context || !Object.keys(context).length) throw new Error('DEVERR: No HOC providing strings context for the useStrings hook.');
+  var strings = new Strings(context.strings, compName);
   return {
     noc: strings.noc,
     cap: strings.cap,
@@ -1220,8 +1240,8 @@ const useStrings = compName => {
     tpl: strings.tpl
   };
 };
-const useLangs = () => {
-  const context = React.useContext(StringsContext);
+var useLangs = function useLangs() {
+  var context = React.useContext(StringsContext);
   return pick(context, 'lang', 'langs', 'setLang', 'meta');
 };
 
